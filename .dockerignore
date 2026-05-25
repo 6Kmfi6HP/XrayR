@@ -1,0 +1,16 @@
+.git
+.github
+.idea
+.lego
+cert
+config.yml
+access.log
+error.log
+build_assets
+dist
+XrayR
+XrayR-*
+*.zip
+*.dgst
+*.test
+*.out
