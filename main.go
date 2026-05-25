@@ -3,7 +3,7 @@ package main
 import (
 	log "github.com/sirupsen/logrus"
 
-	"github.com/XrayR-project/XrayR/cmd"
+	"github.com/6Kmfi6HP/XrayR/cmd"
 )
 
 func main() {

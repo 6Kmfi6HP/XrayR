@@ -2,13 +2,13 @@
 
 [![](https://img.shields.io/badge/TgChat-@XrayR讨论-blue.svg)](https://t.me/XrayR_project)
 [![](https://img.shields.io/badge/Channel-@XrayR通知-blue.svg)](https://t.me/XrayR_channel)
-![](https://img.shields.io/github/stars/XrayR-project/XrayR)
-![](https://img.shields.io/github/forks/XrayR-project/XrayR)
-![](https://github.com/XrayR-project/XrayR/actions/workflows/release.yml/badge.svg)
-![](https://github.com/XrayR-project/XrayR/actions/workflows/docker.yml/badge.svg)
-[![Github All Releases](https://img.shields.io/github/downloads/XrayR-project/XrayR/total.svg)]()
+![](https://img.shields.io/github/stars/6Kmfi6HP/XrayR)
+![](https://img.shields.io/github/forks/6Kmfi6HP/XrayR)
+![](https://github.com/6Kmfi6HP/XrayR/actions/workflows/release.yml/badge.svg)
+![](https://github.com/6Kmfi6HP/XrayR/actions/workflows/docker.yml/badge.svg)
+[![Github All Releases](https://img.shields.io/github/downloads/6Kmfi6HP/XrayR/total.svg)]()
 
-[Iranian(farsi) README](https://github.com/XrayR-project/XrayR/blob/master/README_Fa.md), [Vietnamese(vi) README](https://github.com/XrayR-project/XrayR/blob/master/README-vi.md), [English(en) README](https://github.com/XrayR-project/XrayR/blob/master/README-en.md)
+[Iranian(farsi) README](https://github.com/6Kmfi6HP/XrayR/blob/main/README_Fa.md), [Vietnamese(vi) README](https://github.com/6Kmfi6HP/XrayR/blob/main/README-vi.md), [English(en) README](https://github.com/6Kmfi6HP/XrayR/blob/main/README-en.md)
 
 A Xray backend framework that can easily support many panels.
 
@@ -17,7 +17,7 @@ Khung trở lại dựa trên XRay hỗ trợ các giao thức V2ay, Trojan, Sha
 Nếu bạn thích dự án này, bạn có thể nhấp vào Star+Watch ở góc trên bên phải để tiếp tục chú ý đến tiến trình của dự án này.
 
 ## Tài liệu
-Sử dụng hướng dẫn: [Hướng dẫn chi tiết](https://xrayr-project.github.io/XrayR-doc/) ( Tiếng Trung )
+Sử dụng hướng dẫn: [Hướng dẫn chi tiết](https://github.com/6Kmfi6HP/XrayR/wiki/) ( Tiếng Trung )
 
 ## Tuyên bố miễn trừ
 
@@ -68,20 +68,26 @@ Dự án này chỉ là học tập và phát triển và bảo trì cá nhân c
 ### Một cài đặt chính
 
 ```
-wget -N https://raw.githubusercontent.com/XrayR-project/XrayR-release/master/install.sh && bash install.sh
+wget -N https://raw.githubusercontent.com/6Kmfi6HP/XrayR/main/install.sh && sudo bash install.sh
 ```
 
 ### Sử dụng phần mềm triển khai Docker
 
-[Hướng dẫn cài đặt thông qua Docker](https://xrayr-project.github.io/XrayR-doc/xrayr-xia-zai-he-an-zhuang/install/docker)
+```
+docker run -d --name XrayR --restart=always \
+  -v /etc/XrayR:/etc/XrayR \
+  ghcr.io/6kmfi6hp/xrayr:latest
+```
+
+[Hướng dẫn cài đặt thông qua Docker](https://github.com/6Kmfi6HP/XrayR/wiki/xrayr-xia-zai-he-an-zhuang/install/docker)
 
 ### Hướng dẫn cài đặt
 
-[Hướng dẫn cài đặt thủ công](https://xrayr-project.github.io/XrayR-doc/xrayr-xia-zai-he-an-zhuang/install/manual)
+[Hướng dẫn cài đặt thủ công](https://github.com/6Kmfi6HP/XrayR/wiki/xrayr-xia-zai-he-an-zhuang/install/manual)
 
 ## Tệp cấu hình và hướng dẫn sử dụng chi tiết
 
-[Hướng dẫn chi tiết](https://xrayr-project.github.io/XrayR-doc/)
+[Hướng dẫn chi tiết](https://github.com/6Kmfi6HP/XrayR/wiki/)
 
 ## Thanks
 
@@ -92,7 +98,7 @@ wget -N https://raw.githubusercontent.com/XrayR-project/XrayR-release/master/ins
 
 ## Licence
 
-[Mozilla Public License Version 2.0](https://github.com/XrayR-project/XrayR/blob/master/LICENSE)
+[Mozilla Public License Version 2.0](https://github.com/6Kmfi6HP/XrayR/blob/main/LICENSE)
 
 ## Telgram
 
@@ -102,4 +108,4 @@ wget -N https://raw.githubusercontent.com/XrayR-project/XrayR-release/master/ins
 
 ## Stargazers over time
 
-[![Stargazers over time](https://starchart.cc/XrayR-project/XrayR.svg)](https://starchart.cc/XrayR-project/XrayR)
+[![Stargazers over time](https://starchart.cc/6Kmfi6HP/XrayR.svg)](https://starchart.cc/6Kmfi6HP/XrayR)

@@ -4,42 +4,40 @@ on:
   workflow_dispatch:
   push:
     branches:
+      - main
       - master
-    paths:
-      - "**/*.go"
-      - "go.mod"
-      - "go.sum"
-      - ".github/workflows/*.yml"
+    tags:
+      - "v*"
   pull_request:
-    types: [ opened, synchronize, reopened ]
-    paths:
-      - "**/*.go"
-      - "go.mod"
-      - "go.sum"
-      - ".github/workflows/*.yml"
-  release:
-    types: [ published ]
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  GO_VERSION: "1.25.3"
+  REGISTRY: ghcr.io
+  IMAGE_NAME: 6kmfi6hp/xrayr
 
 jobs:
-
   build:
+    runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        # Include amd64 on all platforms.
-        goos: [ windows, freebsd, openbsd, linux, darwin ]
-        goarch: [ amd64, 386 ]
+        goos: [windows, freebsd, openbsd, linux, darwin]
+        goarch: [amd64, 386]
         exclude:
-          # Exclude i386 on darwin.
-          - goarch: 386
-            goos: darwin
-          - goarch: 386
-            goos: openbsd
+          - goos: darwin
+            goarch: 386
+          - goos: openbsd
+            goarch: 386
         include:
-          # BEIGIN MacOS ARM64
           - goos: darwin
             goarch: arm64
-          # END MacOS ARM64
-          # BEGIN Linux ARM 5 6 7
           - goos: linux
             goarch: arm
             goarm: 7
@@ -49,19 +47,12 @@ jobs:
           - goos: linux
             goarch: arm
             goarm: 5
-          # END Linux ARM 5 6 7
-          # BEGIN Android ARM 8
           - goos: android
             goarch: arm64
-          # END Android ARM 8
-          # BEGIN Other architectures
-          # BEGIN riscv64 & ARM64
           - goos: linux
             goarch: arm64
           - goos: linux
             goarch: riscv64
-          # END riscv64 & ARM64
-          # BEGIN MIPS
           - goos: linux
             goarch: mips64
           - goos: linux
@@ -70,122 +61,202 @@ jobs:
             goarch: mipsle
           - goos: linux
             goarch: mips
-          # END MIPS
-          # BEGIN PPC
-          # - goos: linux # Removed due to the unsupport of shirou/gopsutil 
-          #   goarch: ppc64
           - goos: linux
             goarch: ppc64le
-          # END PPC
-          # BEGIN FreeBSD ARM
           - goos: freebsd
             goarch: arm64
           - goos: freebsd
             goarch: arm
             goarm: 7
-          # END FreeBSD ARM
-          # BEGIN S390X
           - goos: linux
             goarch: s390x
-          # END S390X
-          # END Other architectures
-      fail-fast: false
 
-    runs-on: ubuntu-latest
     env:
       GOOS: ${{ matrix.goos }}
       GOARCH: ${{ matrix.goarch }}
       GOARM: ${{ matrix.goarm }}
-      CGO_ENABLED: 0
+      CGO_ENABLED: "0"
+
     steps:
       - name: Checkout codebase
-        uses: actions/checkout@v3
-      - name: Show workflow information
-        id: get_filename
-        run: |
-          export _NAME=$(jq ".[\"$GOOS-$GOARCH$GOARM$GOMIPS\"].friendlyName" -r < .github/build/friendly-filenames.json)
-          echo "GOOS: $GOOS, GOARCH: $GOARCH, GOARM: $GOARM, GOMIPS: $GOMIPS, RELEASE_NAME: $_NAME"
-          echo "ASSET_NAME=$_NAME" >> $GITHUB_OUTPUT
-          echo "ASSET_NAME=$_NAME" >> $GITHUB_ENV
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
-          go-version: ^1.20
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
 
-      - name: Get project dependencies
+      - name: Resolve release asset name
+        id: asset
+        run: |
+          key="${GOOS}-${GOARCH}${GOARM:-}${GOMIPS:-}"
+          name="$(jq -r --arg key "$key" '.[$key].friendlyName // empty' .github/build/friendly-filenames.json)"
+          if [ -z "$name" ]; then
+            echo "No friendly filename for $key" >&2
+            exit 1
+          fi
+          echo "ASSET_NAME=$name" >> "$GITHUB_OUTPUT"
+          echo "ASSET_NAME=$name" >> "$GITHUB_ENV"
+          echo "Resolved $key to $name"
+
+      - name: Download dependencies
         run: go mod download
 
+      - name: Build release package
+        env:
+          VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
+        run: scripts/package-release.sh
 
-      - name: Build XrayR
-        run: |
-          mkdir -p build_assets
-          go build -v -o build_assets/XrayR -trimpath -ldflags "-s -w -buildid="
-
-      - name: Build Mips softfloat XrayR
-        if: matrix.goarch == 'mips' || matrix.goarch == 'mipsle'
-        run: |
-          GOMIPS=softfloat go build -v -o build_assets/XrayR_softfloat -trimpath -ldflags "-s -w -buildid="
-      - name: Rename Windows XrayR
-        if: matrix.goos == 'windows'
-        run: |
-          cd ./build_assets || exit 1
-          mv XrayR XrayR.exe
-
-      - name: Prepare to release
-        uses: nick-fields/retry@v2
-        with:
-          timeout_minutes: 60
-          retry_wait_seconds: 60
-          max_attempts: 5
-          command: |
-            cp ${GITHUB_WORKSPACE}/README.md ./build_assets/README.md
-            cp ${GITHUB_WORKSPACE}/LICENSE ./build_assets/LICENSE
-            cp ${GITHUB_WORKSPACE}/release/config/dns.json ./build_assets/dns.json
-            cp ${GITHUB_WORKSPACE}/release/config/route.json ./build_assets/route.json
-            cp ${GITHUB_WORKSPACE}/release/config/custom_outbound.json ./build_assets/custom_outbound.json
-            cp ${GITHUB_WORKSPACE}/release/config/custom_inbound.json ./build_assets/custom_inbound.json
-            cp ${GITHUB_WORKSPACE}/release/config/rulelist ./build_assets/rulelist
-            cp ${GITHUB_WORKSPACE}/release/config/config.yml.example ./build_assets/config.yml
-            LIST=('geoip geoip geoip' 'domain-list-community dlc geosite')
-            for i in "${LIST[@]}"
-            do
-              INFO=($(echo $i | awk 'BEGIN{FS=" ";OFS=" "} {print $1,$2,$3}'))
-              DOWNLOAD_URL="https://raw.githubusercontent.com/v2fly/${INFO[0]}/release/${INFO[1]}.dat"
-              FILE_NAME="${INFO[2]}.dat"
-              echo -e "Downloading ${DOWNLOAD_URL}..."
-              curl -L "${DOWNLOAD_URL}" -o ./build_assets/${FILE_NAME}
-              echo -e "Verifying HASH key..."
-              HASH="$(curl -sL "${DOWNLOAD_URL}.sha256sum" | awk -F ' ' '{print $1}')"
-              [ "$(sha256sum "./build_assets/${FILE_NAME}" | awk -F ' ' '{print $1}')" == "${HASH}" ] || { echo -e "The HASH key of ${FILE_NAME} does not match cloud one."; exit 1; }
-            done
-      - name: Create ZIP archive
-        shell: bash
-        run: |
-          pushd build_assets || exit 1
-          touch -mt $(date +%Y01010000) *
-          zip -9vr ../XrayR-$ASSET_NAME.zip .
-          popd || exit 1
-          FILE=./XrayR-$ASSET_NAME.zip
-          DGST=$FILE.dgst
-          for METHOD in {"md5","sha1","sha256","sha512"}
-          do
-            openssl dgst -$METHOD $FILE | sed 's/([^)]*)//g' >>$DGST
-          done
-      - name: Change the name
-        run: |
-          mv build_assets XrayR-$ASSET_NAME
-      - name: Upload files to Artifacts
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: XrayR-${{ steps.get_filename.outputs.ASSET_NAME }}
+          name: XrayR-${{ steps.asset.outputs.ASSET_NAME }}
           path: |
-            ./XrayR-${{ steps.get_filename.outputs.ASSET_NAME }}/*
-      - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
-        if: github.event_name == 'release'
+            XrayR-${{ steps.asset.outputs.ASSET_NAME }}/*
+            dist/XrayR-${{ steps.asset.outputs.ASSET_NAME }}.zip
+            dist/XrayR-${{ steps.asset.outputs.ASSET_NAME }}.zip.dgst
+
+  publish:
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Download packaged assets
+        uses: actions/download-artifact@v4
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./XrayR-${{ steps.get_filename.outputs.ASSET_NAME }}.zip*
-          tag: ${{ github.ref }}
-          file_glob: true
+          pattern: XrayR-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Upload assets to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-assets/dist/XrayR-*.zip
+            release-assets/dist/XrayR-*.zip.dgst
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs:
+      - publish
+    if: startsWith(github.ref, 'refs/tags/')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            platform_id: linux-amd64
+          - platform: linux/arm/v6
+            platform_id: linux-arm-v6
+          - platform: linux/arm/v7
+            platform_id: linux-arm-v7
+          - platform: linux/arm64
+            platform_id: linux-arm64
+          - platform: linux/s390x
+            platform_id: linux-s390x
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=sha-
+            type=raw,value=latest
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ matrix.platform_id }}
+          cache-to: type=gha,scope=${{ matrix.platform_id }},mode=max
+
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.platform_id }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  docker-merge:
+    runs-on: ubuntu-latest
+    needs:
+      - docker-build
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: digests-*
+          path: /tmp/digests
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=sha-
+            type=raw,value=latest
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create manifest list and push
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+
+      - name: Inspect image
+        run: |
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}

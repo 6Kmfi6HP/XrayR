@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/XrayR-project/XrayR/api"
+	"github.com/6Kmfi6HP/XrayR/api"
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/gclient"

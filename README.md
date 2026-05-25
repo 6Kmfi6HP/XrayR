@@ -2,14 +2,14 @@
 
 [![](https://img.shields.io/badge/TgChat-@XrayR讨论-blue.svg)](https://t.me/XrayR_project)
 [![](https://img.shields.io/badge/Channel-@XrayR通知-blue.svg)](https://t.me/XrayR_channel)
-![](https://img.shields.io/github/stars/XrayR-project/XrayR)
-![](https://img.shields.io/github/forks/XrayR-project/XrayR)
-![](https://github.com/XrayR-project/XrayR/actions/workflows/release.yml/badge.svg)
-![](https://github.com/XrayR-project/XrayR/actions/workflows/docker.yml/badge.svg)
-[![Github All Releases](https://img.shields.io/github/downloads/XrayR-project/XrayR/total.svg)]()
+![](https://img.shields.io/github/stars/6Kmfi6HP/XrayR)
+![](https://img.shields.io/github/forks/6Kmfi6HP/XrayR)
+![](https://github.com/6Kmfi6HP/XrayR/actions/workflows/release.yml/badge.svg)
+![](https://github.com/6Kmfi6HP/XrayR/actions/workflows/docker.yml/badge.svg)
+[![Github All Releases](https://img.shields.io/github/downloads/6Kmfi6HP/XrayR/total.svg)]()
 
 
-[English](https://github.com/XrayR-project/XrayR/blob/master/README-en.md)|[Iranian](https://github.com/XrayR-project/XrayR/blob/master/README_Fa.md)|[Vietnamese](https://github.com/XrayR-project/XrayR/blob/master/README-vi.md)
+[English](https://github.com/6Kmfi6HP/XrayR/blob/main/README-en.md)|[Iranian](https://github.com/6Kmfi6HP/XrayR/blob/main/README_Fa.md)|[Vietnamese](https://github.com/6Kmfi6HP/XrayR/blob/main/README-vi.md)
 
 A Xray backend framework that can easily support many panels.
 
@@ -17,7 +17,7 @@ A Xray backend framework that can easily support many panels.
 
 如果您喜欢本项目，可以右上角点个star+watch，持续关注本项目的进展。
 
-使用教程：[详细使用教程](https://xrayr-project.github.io/XrayR-doc/)
+使用教程：[详细使用教程](https://github.com/6Kmfi6HP/XrayR/wiki/)
 
 
 ## 免责声明
@@ -70,20 +70,26 @@ A Xray backend framework that can easily support many panels.
 ### 一键安装
 
 ```
-wget -N https://raw.githubusercontent.com/XrayR-project/XrayR-release/master/install.sh && bash install.sh
+wget -N https://raw.githubusercontent.com/6Kmfi6HP/XrayR/main/install.sh && sudo bash install.sh
 ```
 
 ### 使用Docker部署软件
 
-[Docker部署教程](https://xrayr-project.github.io/XrayR-doc/xrayr-xia-zai-he-an-zhuang/install/docker)
+```
+docker run -d --name XrayR --restart=always \
+  -v /etc/XrayR:/etc/XrayR \
+  ghcr.io/6kmfi6hp/xrayr:latest
+```
+
+[Docker部署教程](https://github.com/6Kmfi6HP/XrayR/wiki/xrayr-xia-zai-he-an-zhuang/install/docker)
 
 ### 手动安装
 
-[手动安装教程](https://xrayr-project.github.io/XrayR-doc/xrayr-xia-zai-he-an-zhuang/install/manual)
+[手动安装教程](https://github.com/6Kmfi6HP/XrayR/wiki/xrayr-xia-zai-he-an-zhuang/install/manual)
 
 ## 配置文件及详细使用教程
 
-[详细使用教程](https://xrayr-project.github.io/XrayR-doc/)
+[详细使用教程](https://github.com/6Kmfi6HP/XrayR/wiki/)
 
 ## Thanks
 
@@ -94,7 +100,7 @@ wget -N https://raw.githubusercontent.com/XrayR-project/XrayR-release/master/ins
 
 ## Licence
 
-[Mozilla Public License Version 2.0](https://github.com/XrayR-project/XrayR/blob/master/LICENSE)
+[Mozilla Public License Version 2.0](https://github.com/6Kmfi6HP/XrayR/blob/main/LICENSE)
 
 ## Telgram
 
@@ -104,6 +110,5 @@ wget -N https://raw.githubusercontent.com/XrayR-project/XrayR-release/master/ins
 
 ## Stargazers over time
 
-[![Stargazers over time](https://starchart.cc/XrayR-project/XrayR.svg)](https://starchart.cc/XrayR-project/XrayR)
-
+[![Stargazers over time](https://starchart.cc/6Kmfi6HP/XrayR.svg)](https://starchart.cc/6Kmfi6HP/XrayR)
 
