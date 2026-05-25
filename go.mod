@@ -1,6 +1,6 @@
 module github.com/XrayR-project/XrayR
 
-go 1.25
+go 1.25.0
 
 toolchain go1.25.3
 
@@ -28,7 +28,7 @@ require (
 	github.com/xtls/xray-core v1.251015.0
 	golang.org/x/crypto v0.43.0
 	golang.org/x/net v0.46.0
-	golang.org/x/time v0.7.0
+	golang.org/x/time v0.15.0
 	google.golang.org/protobuf v1.36.10
 )
 
